@@ -21,14 +21,14 @@ parseFile fp = do
 pTm :: P Tm
 pTm = foldl1 App <$> some pAtom
   where
-    pAtom = choice [pU, pLet,  pVar, pLam, pPi, pAno, pTm']
+    pAtom = choice $ map try [pU, pLet, pVar, pLam, pPi, pAno, pTm']
     pVar = Var <$> pNm
     pLam = do sym "\\"; x <- pNm; sym "."; Lam x <$> pTm
-    pPi = try do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "->"; Pi x t <$> pTm
+    pPi = do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "->"; Pi x t <$> pTm
     pU = sym "U" $> U
     pAno = do lp; t <- pTm; sym ":"; u <- pTm; rp; pure $ Ano t u
     pLet = do sym "let"; x <- pNm; sym "="; t <- pTm; sym ";"; Let x t <$> pTm
-    pTm' = lp *> pTm <* rp
+    pTm' = do lp; t <- pTm; rp; pure t-- lp *> pTm <* rp
 
 pNm :: P Nm
 pNm = lexeme do
