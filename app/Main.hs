@@ -1,5 +1,6 @@
 module Main where
 
+import Check
 import Control.Monad.Except
 import Control.Monad.IO.Class
 import Parse
@@ -13,6 +14,7 @@ app = do
     [x] -> pure x
     _ -> throwError "Program requires one argument, which is the file to process."
   tm <- parseFile fp
+  _ <- infer [] tm
   liftIO $ print tm
 
 main :: IO ()

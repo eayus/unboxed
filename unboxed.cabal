@@ -10,8 +10,11 @@ executable unboxed
     ghc-options:      -Wall
     main-is:          Main.hs
     other-modules:
+        Check,
+        Norm,
         Parse,
         Syntax,
+        Term,
     build-depends:
         base,
         megaparsec,

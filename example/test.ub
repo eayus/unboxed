@@ -1,1 +1,3 @@
-(\a. \x. x : (a : U) -> (x : a) -> a)
+let id = (\a. \x. x : (a : U) -> (x : a) -> a);
+
+id U U

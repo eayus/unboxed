@@ -21,7 +21,7 @@ parseFile fp = do
 pTm :: P Tm
 pTm = foldl1 App <$> some pAtom
   where
-    pAtom = choice [pVar, pLam, pPi, pU, pAno, pLet, pTm']
+    pAtom = choice [pU, pLet,  pVar, pLam, pPi, pAno, pTm']
     pVar = Var <$> pNm
     pLam = do sym "\\"; x <- pNm; sym "."; Lam x <$> pTm
     pPi = try do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "->"; Pi x t <$> pTm
