@@ -1,0 +1,18 @@
+resolver: lts-21.25
+
+packages:
+  - .
+
+extra-deps:
+  - git: https://github.com/llvm-hs/llvm-hs.git
+    commit: 5bca2c1a2a3aa98ecfb19181e7a5ebbf3e212b76
+    subdirs:
+      - llvm-hs
+      - llvm-hs-pure
+
+nix:
+  enable: true
+  packages:
+    - libxml2
+    - llvm_15
+    - clang # Used at run-time for linking and compiling C run-time library.

@@ -1,0 +1,19 @@
+name:                unboxed
+
+dependencies:
+  - base
+  - megaparsec
+  - mtl
+  - llvm-hs
+  - llvm-hs-pure
+
+default-extensions:
+  - BlockArguments
+  - FlexibleContexts
+  - ImportQualifiedPost
+  - LambdaCase
+
+executables:
+  unboxed:
+    source-dirs:      app
+    main:             Main.hs
