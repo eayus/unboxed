@@ -21,8 +21,9 @@ data Tm
 
 data Gen
   = Pure Tm
-  | Zeros Tm
+  | Replicate Tm Tm
   | Pair Tm Gen
+  | GAno Gen Tm
   deriving (Eq, Show)
 
 data Ptr
@@ -54,8 +55,9 @@ data Sm
 
 data SGen
   = SPure Sm
-  | SZeros Sm
+  | SReplicate Sm Sm
   | SPair Sm SGen
+  | SGAno SGen Sm
 
 data SPtr
   = SFst SPtr

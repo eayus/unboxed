@@ -24,8 +24,9 @@ data Tm
 -- The form of expressions which generate unsized data.
 data Gen
   = Pure Tm
-  | Zeros Tm -- TODO: Replace with replicate
+  | Replicate Tm Tm -- replicate n a
   | Pair Tm Gen
+  | GAno Gen Tm
   deriving Show
 
 -- The form of expressions which access (index into) unsized data.

@@ -27,8 +27,9 @@ eval r = do
 evalGen :: Env -> Gen -> SGen
 evalGen r = \case
   Pure t -> SPure $ eval r t
-  Zeros t -> SZeros $ eval r t
+  Replicate t u -> SReplicate (eval r t) (eval r u)
   Pair t u -> SPair (eval r t) (evalGen r u)
+  GAno t _ -> evalGen r t
 
 evalPtr :: Env -> Ptr -> SPtr
 evalPtr r = do
@@ -71,8 +72,9 @@ reify k = do
 reifyGen :: Int -> SGen -> Gen
 reifyGen k = \case
   SPure t -> Pure $ reify k t
-  SZeros t -> Zeros $ reify k t
+  SReplicate t u -> Replicate (reify k t) (reify k u)
   SPair t u -> Pair (reify k t) (reifyGen k u)
+  SGAno t u -> GAno (reifyGen k t) (reify k u)
 
 reifyPtr :: Int -> SPtr -> Ptr
 reifyPtr k = do

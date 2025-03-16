@@ -1,3 +1,8 @@
-let arr = new (zeros 5);
+let dyn-array = (n : Nat) &r (Array n Nat);
+
+let zeros = (\n. new ((n, replicate n 0) : dyn-array) : (n : Nat) -> Box dyn-array);
+
+let arr = new (replicate 5 0);
+
 let el5 = index (elem @arr 5);
 el5

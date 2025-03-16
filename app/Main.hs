@@ -13,11 +13,11 @@ app :: App ()
 app = do
   fp <- liftIO getArgs >>= \case
     [x] -> pure x
-    _ -> throwError "Program requires one argument, which is the file to process."
-  tm <- parseFile fp
-  (a, _)<- infer [] tm
+    _ -> throwError "Program requires exactly one argument, which is the file to process."
+  t <- parseFile fp
+  (a, t') <- infer [] t
   let a' = reify 0 a
-  liftIO $ putStrLn $ show tm ++ " : " ++ show a'
+  liftIO $ putStrLn $ show (reify 0 $ eval [] t') ++ " : " ++ show a'
 
 main :: IO ()
 main = runExceptT app >>= \case

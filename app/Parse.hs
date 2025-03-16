@@ -37,17 +37,18 @@ pAtom = choice $ map try [pIndex, pU, pUr, pBang, pArray, pBox, pNew, pLet, pVar
     pBox = do sym "Box"; Box <$> pTm
     pNew = do sym "new"; New <$> pGen
     pBang = do sym "!"; Bang <$> pTm
-    pSigR = do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "&r"; u <- pTm; pure $ SigR x t u
-    pArray = do sym "Array"; t <- pTm; u <- pTm; pure $ Array t u
+    pSigR = do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "&r"; u <- pAtom; pure $ SigR x t u
+    pArray = do sym "Array"; t <- pAtom; u <- pAtom; pure $ Array t u
     pIndex = do sym "index"; Index <$> pPtr
     pTm' = do lp; t <- pTm; rp; pure t-- lp *> pTm <* rp
 
 pGen :: P Gen
-pGen = choice $ map try [pPure, pZeros, pPair, pGen']
+pGen = choice $ map try [pGAno, pPure, pReplicate, pPair, pGen']
   where
     pPure = do sym "pure"; Pure <$> pTm
-    pZeros = do sym "zeros"; Zeros <$> pTm
+    pReplicate = do sym "replicate"; n <- pAtom; t <- pAtom; pure $ Replicate n t
     pPair = do lp; t <- pTm; sym ","; u <- pGen; rp; pure $ Pair t u
+    pGAno = do lp; t <- pGen; sym ":"; u <- pTm; rp; pure $ GAno t u
     pGen' = do lp; t <- pGen; rp; pure t-- lp *> pGen <* rp
 
 pPtr :: P Ptr
@@ -64,7 +65,7 @@ pPtr = choice $ map try [pFst, pSnd, pDeref, pFstR, pSndR, pElem, pPtr']
 pNm :: P Nm
 pNm = lexeme do
   c <- letterChar
-  cs <- many alphaNumChar
+  cs <- many (alphaNumChar <|> char '-')
   let s = c : cs
   guard (s `notElem` reserved)
   pure s
@@ -83,7 +84,7 @@ rp = sym ")"
 -- Lexing
 
 reserved :: [String]
-reserved = ["let", "U", "Ur", "Box", "Array", "new", "pure", "zeros", "fst", "fstr", "snd", "sndr", "index"]
+reserved = ["let", "U", "Ur", "Box", "Array", "Nat", "new", "pure", "replicate", "fst", "fstr", "snd", "sndr", "index"]
 
 lexeme :: P a -> P a
 lexeme = L.lexeme sc

@@ -50,7 +50,7 @@ infer c = \case
     (_, t') <- checkU c t
     let st = eval (env c) t'
     u' <- check ((x, (st, T.SVar (length c))) : c) u T.SUr
-    pure (T.SU 8, T.SigR t' u')
+    pure (T.SUr, T.SigR t' u')
   S.Array t u -> do
     t' <- check c t T.SNat
     (_, u') <- checkU c u
@@ -66,11 +66,32 @@ inferGen c = \case
   S.Pure t -> do
     (a, t') <- infer c t
     pure (T.SBang a, T.Pure t')
-  S.Zeros t -> do
-    t' <- check c t T.SNat
-    let st = eval (env c) t'
-    pure (T.SArray st T.SNat, T.Zeros t')
+  S.Replicate n t -> do
+    n' <- check c n T.SNat
+    (a, t') <- infer c t
+    let sn = eval (env c) n'
+    pure (T.SArray sn a, T.Replicate n' t')
   S.Pair _ _ -> throwError "Cannot infer pair"
+  S.GAno t a -> do
+    a' <- check c a T.SUr
+    let sa = eval (env c) a'
+    t' <- checkGen c t sa
+    pure (sa, T.GAno t' a')
+
+checkGen :: MonadError String m => Ctxt -> S.Gen -> T.Sm -> m T.Gen
+checkGen c (S.Pair t u) (T.SSigR a b) = do
+  t' <- check c t a
+  let st = eval (env c) t'
+  u' <- checkGen c u (b st)
+  pure (T.Pair t' u')
+checkGen c t@(S.Pair {}) a = throwError $ "The (generator) pair " ++ show t ++ " has a sigma type, but it is expected to have type " ++ show (reify (length c) a)
+checkGen c t a = do
+  (b, t') <- inferGen c t
+  let k = length c
+  let a'  = reify k a
+  let b'  = reify k b
+  unless (a' == b') (throwError $ "When checking the generator " ++ show t ++ "\nMismatch between\n" ++ show a' ++ "\n" ++ show b')
+  pure t'
 
 inferPtr :: MonadError String m => Ctxt -> S.Ptr -> m (T.Sm, T.Ptr)
 inferPtr c = \case
@@ -96,7 +117,7 @@ inferPtr c = \case
 checkU :: MonadError String m => Ctxt -> S.Tm -> m (Int, T.Tm)
 checkU c t = infer c t >>= \case
   (T.SU n, t') -> pure (n, t')
-  _ -> throwError "Expected a type"
+  (a, _) -> throwError $ "The term " ++ show t ++ " is expected to be a sized type, instead it has type " ++ show (reify (length c) a)
 
 check :: MonadError String m => Ctxt -> S.Tm -> T.Sm -> m T.Tm
 check c (S.Lam x t) (T.SPi a b) = do
@@ -109,7 +130,7 @@ check c t a = do
   let k = length c
   let a'  = reify k a
   let b'  = reify k b
-  unless (a' == b') (throwError $ "Mismatch between\n" ++ show a' ++ "\n" ++ show b')
+  unless (a' == b') (throwError $ "When checking the term " ++ show t ++ "\nMismatch between\n" ++ show a' ++ "\n" ++ show b')
   pure t'
 
 env :: Ctxt -> T.Env
