@@ -1,4 +1,4 @@
-module Norm (eval, reify) where
+module Norm (eval, reify, evalPtr) where
 
 import Term
 
@@ -22,12 +22,24 @@ eval r = do
     New t -> SNew (evalGen r t)
     SigR t u -> SSigR (e t) (b u)
     Array t u -> SArray (e t) (e u)
+    Index p -> SIndex (evalPtr r p)
 
 evalGen :: Env -> Gen -> SGen
 evalGen r = \case
   Pure t -> SPure $ eval r t
   Zeros t -> SZeros $ eval r t
   Pair t u -> SPair (eval r t) (evalGen r u)
+
+evalPtr :: Env -> Ptr -> SPtr
+evalPtr r = do
+  let e = evalPtr r
+  \case
+    Fst p -> SFst (e p)
+    Snd p -> SSnd (e p)
+    Deref t -> SDeref (eval r t)
+    FstR p -> SFstR (e p)
+    SndR p -> SSndR (e p)
+    Elem p t -> SElem (e p) (eval r t)
 
 app :: Sm -> Sm -> Sm
 app = \case
@@ -54,9 +66,21 @@ reify k = do
     SNew t -> New (reifyGen k t)
     SSigR t u -> SigR (e t) (b u)
     SArray t u -> Array (e t) (e u)
+    SIndex p -> Index (reifyPtr k p)
 
 reifyGen :: Int -> SGen -> Gen
 reifyGen k = \case
   SPure t -> Pure $ reify k t
   SZeros t -> Zeros $ reify k t
   SPair t u -> Pair (reify k t) (reifyGen k u)
+
+reifyPtr :: Int -> SPtr -> Ptr
+reifyPtr k = do
+  let e = reifyPtr k
+  \case
+    SFst p -> Fst (e p)
+    SSnd p -> Snd (e p)
+    SDeref t -> Deref (reify k t)
+    SFstR p -> FstR (e p)
+    SSndR p -> SndR (e p)
+    SElem p t -> Elem (e p) (reify k t)

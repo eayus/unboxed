@@ -16,12 +16,22 @@ data Tm
   | New Gen
   | SigR Tm Tm
   | Array Tm Tm
+  | Index Ptr
   deriving (Eq, Show)
 
 data Gen
   = Pure Tm
   | Zeros Tm
   | Pair Tm Gen
+  deriving (Eq, Show)
+
+data Ptr
+  = Fst Ptr
+  | Snd Ptr
+  | Deref Tm
+  | FstR Ptr
+  | SndR Ptr
+  | Elem Ptr Tm
   deriving (Eq, Show)
 
 data Sm
@@ -40,10 +50,19 @@ data Sm
   | SNew SGen
   | SSigR Sm (Sm -> Sm)
   | SArray Sm Sm
+  | SIndex SPtr
 
 data SGen
   = SPure Sm
   | SZeros Sm
   | SPair Sm SGen
+
+data SPtr
+  = SFst SPtr
+  | SSnd SPtr
+  | SDeref Sm
+  | SFstR SPtr
+  | SSndR SPtr
+  | SElem SPtr Sm
 
 type Env = [Sm]

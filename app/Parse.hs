@@ -21,8 +21,10 @@ parseFile fp = do
 
 pTm :: P Tm
 pTm = foldl1 App <$> some pAtom
+
+pAtom :: P Tm
+pAtom = choice $ map try [pIndex, pU, pUr, pBang, pArray, pBox, pNew, pLet, pVar, pLam, pSigR, pPi, pAno, pTm', pNat, pNum]
   where
-    pAtom = choice $ map try [pU, pUr, pBang, pArray, pBox, pNew, pLet, pVar, pLam, pSigR, pPi, pAno, pTm', pNat, pNum]
     pVar = Var <$> pNm
     pLam = do sym "\\"; x <- pNm; sym "."; Lam x <$> pTm
     pPi = do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "->"; Pi x t <$> pTm
@@ -37,6 +39,7 @@ pTm = foldl1 App <$> some pAtom
     pBang = do sym "!"; Bang <$> pTm
     pSigR = do lp; x <- pNm; sym ":"; t <- pTm; rp; sym "&r"; u <- pTm; pure $ SigR x t u
     pArray = do sym "Array"; t <- pTm; u <- pTm; pure $ Array t u
+    pIndex = do sym "index"; Index <$> pPtr
     pTm' = do lp; t <- pTm; rp; pure t-- lp *> pTm <* rp
 
 pGen :: P Gen
@@ -46,6 +49,17 @@ pGen = choice $ map try [pPure, pZeros, pPair, pGen']
     pZeros = do sym "zeros"; Zeros <$> pTm
     pPair = do lp; t <- pTm; sym ","; u <- pGen; rp; pure $ Pair t u
     pGen' = do lp; t <- pGen; rp; pure t-- lp *> pGen <* rp
+
+pPtr :: P Ptr
+pPtr = choice $ map try [pFst, pSnd, pDeref, pFstR, pSndR, pElem, pPtr']
+  where
+    pFst = do sym "fst"; Fst <$> pPtr
+    pSnd = do sym "snd"; Snd <$> pPtr
+    pDeref = do sym "@"; Deref <$> pAtom
+    pFstR = do sym "fstr"; FstR <$> pPtr
+    pSndR = do sym "sndr"; SndR <$> pPtr
+    pElem = do sym "elem"; p <- pPtr; t <- pAtom; pure $ Elem p t
+    pPtr' = do lp; p <- pPtr; rp; pure p
 
 pNm :: P Nm
 pNm = lexeme do
@@ -69,7 +83,7 @@ rp = sym ")"
 -- Lexing
 
 reserved :: [String]
-reserved = ["let", "U", "Ur", "Box", "Array", "new", "pure", "zeros"]
+reserved = ["let", "U", "Ur", "Box", "Array", "new", "pure", "zeros", "fst", "fstr", "snd", "sndr", "index"]
 
 lexeme :: P a -> P a
 lexeme = L.lexeme sc

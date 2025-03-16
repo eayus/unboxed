@@ -18,10 +18,22 @@ data Tm
   | Bang Tm -- Angle brackets in the agda formalization
   | SigR Nm Tm Tm
   | Array Tm Tm
+  | Index Ptr
   deriving Show
 
+-- The form of expressions which generate unsized data.
 data Gen
   = Pure Tm
   | Zeros Tm -- TODO: Replace with replicate
   | Pair Tm Gen
+  deriving Show
+
+-- The form of expressions which access (index into) unsized data.
+data Ptr
+  = Fst Ptr
+  | Snd Ptr
+  | Deref Tm
+  | FstR Ptr
+  | SndR Ptr
+  | Elem Ptr Tm
   deriving Show

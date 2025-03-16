@@ -1,2 +1,3 @@
 let arr = new (zeros 5);
-arr
+let el5 = index (elem @arr 5);
+el5

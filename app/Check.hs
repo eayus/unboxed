@@ -55,6 +55,11 @@ infer c = \case
     t' <- check c t T.SNat
     (_, u') <- checkU c u
     pure (T.SUr, T.Array t' u')
+  S.Index p -> do
+    (a, p') <- inferPtr c p
+    case a of
+      T.SBang b -> pure (b, T.Index p')
+      _ -> throwError $ "Cannot extract the unsized data of type '" ++ show (reify (length c) a) ++ "' using index.\nWe expect a type which is wrapped in '!'"
 
 inferGen :: MonadError String m => Ctxt -> S.Gen -> m (T.Sm, T.Gen)
 inferGen c = \case
@@ -66,6 +71,27 @@ inferGen c = \case
     let st = eval (env c) t'
     pure (T.SArray st T.SNat, T.Zeros t')
   S.Pair _ _ -> throwError "Cannot infer pair"
+
+inferPtr :: MonadError String m => Ctxt -> S.Ptr -> m (T.Sm, T.Ptr)
+inferPtr c = \case
+  S.Fst _ -> undefined -- TODO: Implement sized sigmas
+  S.Snd _ -> undefined
+  S.Deref t -> infer c t >>= \case
+    (T.SBox a, t') -> pure (a, T.Deref t')
+    _ -> throwError "Can only deref boxed data"
+  S.FstR p -> inferPtr c p >>= \case
+    (T.SSigR a _, p') -> pure (T.SBang a, T.FstR p')
+    _ -> throwError "Can only 'fstr' a runtime sigma"
+  S.SndR p -> inferPtr c p >>= \case
+    (T.SSigR _ b, p') -> do
+      let sp = evalPtr (env c) p'
+      pure (b (T.SIndex (T.SFstR sp)), T.SndR p')
+    _ -> throwError "Can only 'sndr' a runtime sigma"
+  S.Elem p t -> inferPtr c p >>= \case
+    (T.SArray _ a, p') -> do
+      t' <- check c t T.SNat
+      pure (T.SBang a, T.Elem p' t')
+    _ -> throwError "Can only extract an element out of an array"
 
 checkU :: MonadError String m => Ctxt -> S.Tm -> m (Int, T.Tm)
 checkU c t = infer c t >>= \case
