@@ -5,9 +5,23 @@ data Tm
   | Lam Tm
   | App Tm Tm
   | Pi Tm Tm
-  | U
+  | U Int
+  | Ur
+  | Nat
+  | Num Int
   | Ano Tm Tm
   | Let Tm Tm
+  | Box Tm
+  | Bang Tm
+  | New Gen
+  | SigR Tm Tm
+  | Array Tm Tm
+  deriving (Eq, Show)
+
+data Gen
+  = Pure Tm
+  | Zeros Tm
+  | Pair Tm Gen
   deriving (Eq, Show)
 
 data Sm
@@ -15,8 +29,21 @@ data Sm
   | SLam (Sm -> Sm)
   | SApp Sm Sm
   | SPi Sm (Sm -> Sm)
-  | SU
+  | SU Int
+  | SUr
+  | SNat
+  | SNum Int
   | SAno Sm Sm
   | SLet Sm (Sm -> Sm)
+  | SBox Sm
+  | SBang Sm
+  | SNew SGen
+  | SSigR Sm (Sm -> Sm)
+  | SArray Sm Sm
+
+data SGen
+  = SPure Sm
+  | SZeros Sm
+  | SPair Sm SGen
 
 type Env = [Sm]

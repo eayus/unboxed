@@ -3,6 +3,7 @@ module Main where
 import Check
 import Control.Monad.Except
 import Control.Monad.IO.Class
+import Norm
 import Parse
 import System.Environment
 
@@ -14,8 +15,9 @@ app = do
     [x] -> pure x
     _ -> throwError "Program requires one argument, which is the file to process."
   tm <- parseFile fp
-  _ <- infer [] tm
-  liftIO $ print tm
+  (a, _)<- infer [] tm
+  let a' = reify 0 a
+  liftIO $ putStrLn $ show tm ++ " : " ++ show a'
 
 main :: IO ()
 main = runExceptT app >>= \case

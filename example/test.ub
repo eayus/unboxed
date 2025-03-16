@@ -1,3 +1,2 @@
-let id = (\a. \x. x : (a : U) -> (x : a) -> a);
-
-id ((e : U) -> U) (id U) U
+let arr = new (zeros 5);
+arr
