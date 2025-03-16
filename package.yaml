@@ -12,6 +12,7 @@ default-extensions:
   - FlexibleContexts
   - ImportQualifiedPost
   - LambdaCase
+  - RecursiveDo
 
 executables:
   unboxed:

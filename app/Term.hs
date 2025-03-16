@@ -12,17 +12,17 @@ data Tm
   | Ano Tm Tm
   | Let Tm Tm
   | Box Tm
-  | Bang Tm
+  | Bang Tm Int -- type, sizeof(type)
   | New Gen
-  | SigR Tm Tm
-  | Array Tm Tm
-  | Index Ptr
+  | SigR Tm Tm Int -- Fst, Snd, sizeof(Fst)
+  | Array Tm Tm Int -- len, el, sizeof(el)
+  | Index Ptr Int -- ptr, sizeof(*ptr)
   deriving (Eq, Show)
 
 data Gen
   = Pure Tm Int -- Val, Size
   | Replicate Tm Tm Int -- count, elem, sizeof(elem)
-  | Pair Tm Gen
+  | Pair Tm Gen Int -- fst, snd, sizeof(fst)
   | GAno Gen Tm
   deriving (Eq, Show)
 
@@ -31,7 +31,7 @@ data Ptr
   | Snd Ptr
   | Deref Tm
   | FstR Ptr
-  | SndR Ptr
+  | SndR Ptr Int -- pair, sizeof(fst(pair))
   | Elem Ptr Tm
   deriving (Eq, Show)
 
@@ -47,16 +47,16 @@ data Sm
   | SAno Sm Sm
   | SLet Sm (Sm -> Sm)
   | SBox Sm
-  | SBang Sm
+  | SBang Sm Int
   | SNew SGen
-  | SSigR Sm (Sm -> Sm)
-  | SArray Sm Sm
-  | SIndex SPtr
+  | SSigR Sm (Sm -> Sm) Int
+  | SArray Sm Sm Int
+  | SIndex SPtr Int
 
 data SGen
   = SPure Sm Int
   | SReplicate Sm Sm Int
-  | SPair Sm SGen
+  | SPair Sm SGen Int
   | SGAno SGen Sm
 
 data SPtr
@@ -64,7 +64,7 @@ data SPtr
   | SSnd SPtr
   | SDeref Sm
   | SFstR SPtr
-  | SSndR SPtr
+  | SSndR SPtr Int
   | SElem SPtr Sm
 
 type SEnv = [Sm]
