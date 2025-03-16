@@ -20,8 +20,8 @@ data Tm
   deriving (Eq, Show)
 
 data Gen
-  = Pure Tm
-  | Replicate Tm Tm
+  = Pure Tm Int -- Val, Size
+  | Replicate Tm Tm Int -- count, elem, sizeof(elem)
   | Pair Tm Gen
   | GAno Gen Tm
   deriving (Eq, Show)
@@ -54,8 +54,8 @@ data Sm
   | SIndex SPtr
 
 data SGen
-  = SPure Sm
-  | SReplicate Sm Sm
+  = SPure Sm Int
+  | SReplicate Sm Sm Int
   | SPair Sm SGen
   | SGAno SGen Sm
 
@@ -67,4 +67,4 @@ data SPtr
   | SSndR SPtr
   | SElem SPtr Sm
 
-type Env = [Sm]
+type SEnv = [Sm]

@@ -23,8 +23,8 @@ data Tm
 
 -- The form of expressions which generate unsized data.
 data Gen
-  = Pure Tm
-  | Replicate Tm Tm -- replicate n a
+  = Pure Tm Tm -- Val, Ty
+  | Replicate Tm Tm Tm -- count, elem, typeof(elem)
   | Pair Tm Gen
   | GAno Gen Tm
   deriving Show

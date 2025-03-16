@@ -2,7 +2,7 @@ module Norm (eval, reify, evalPtr) where
 
 import Term
 
-eval :: Env -> Tm -> Sm
+eval :: SEnv -> Tm -> Sm
 eval r = do
   let e = eval r
   let b t arg = eval (arg : r) t
@@ -24,14 +24,14 @@ eval r = do
     Array t u -> SArray (e t) (e u)
     Index p -> SIndex (evalPtr r p)
 
-evalGen :: Env -> Gen -> SGen
+evalGen :: SEnv -> Gen -> SGen
 evalGen r = \case
-  Pure t -> SPure $ eval r t
-  Replicate t u -> SReplicate (eval r t) (eval r u)
+  Pure t n -> SPure (eval r t) n
+  Replicate t u n -> SReplicate (eval r t) (eval r u) n
   Pair t u -> SPair (eval r t) (evalGen r u)
   GAno t _ -> evalGen r t
 
-evalPtr :: Env -> Ptr -> SPtr
+evalPtr :: SEnv -> Ptr -> SPtr
 evalPtr r = do
   let e = evalPtr r
   \case
@@ -71,8 +71,8 @@ reify k = do
 
 reifyGen :: Int -> SGen -> Gen
 reifyGen k = \case
-  SPure t -> Pure $ reify k t
-  SReplicate t u -> Replicate (reify k t) (reify k u)
+  SPure t n -> Pure (reify k t) n
+  SReplicate t u n -> Replicate (reify k t) (reify k u) n
   SPair t u -> Pair (reify k t) (reifyGen k u)
   SGAno t u -> GAno (reifyGen k t) (reify k u)
 

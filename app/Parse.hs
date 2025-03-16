@@ -45,8 +45,8 @@ pAtom = choice $ map try [pIndex, pU, pUr, pBang, pArray, pBox, pNew, pLet, pVar
 pGen :: P Gen
 pGen = choice $ map try [pGAno, pPure, pReplicate, pPair, pGen']
   where
-    pPure = do sym "pure"; Pure <$> pTm
-    pReplicate = do sym "replicate"; n <- pAtom; t <- pAtom; pure $ Replicate n t
+    pPure = do sym "pure"; lp; t <- pTm; sym ":"; a <- pTm; rp; pure $ Pure t a
+    pReplicate = do sym "replicate"; n <- pAtom; lp; t <- pTm; sym ":"; a <- pTm; rp; pure $ Replicate n t a
     pPair = do lp; t <- pTm; sym ","; u <- pGen; rp; pure $ Pair t u
     pGAno = do lp; t <- pGen; sym ":"; u <- pTm; rp; pure $ GAno t u
     pGen' = do lp; t <- pGen; rp; pure t-- lp *> pGen <* rp

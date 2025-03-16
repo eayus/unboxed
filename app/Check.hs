@@ -63,14 +63,18 @@ infer c = \case
 
 inferGen :: MonadError String m => Ctxt -> S.Gen -> m (T.Sm, T.Gen)
 inferGen c = \case
-  S.Pure t -> do
-    (a, t') <- infer c t
-    pure (T.SBang a, T.Pure t')
-  S.Replicate n t -> do
+  S.Pure t a -> do
+    (n, a') <- checkU c a
+    let sa = eval (env c) a'
+    t' <- check c t sa
+    pure (T.SBang sa, T.Pure t' n)
+  S.Replicate n t a -> do
+    (i, a') <- checkU c a
+    let sa = eval (env c) a'
     n' <- check c n T.SNat
-    (a, t') <- infer c t
+    t' <- check c t sa
     let sn = eval (env c) n'
-    pure (T.SArray sn a, T.Replicate n' t')
+    pure (T.SArray sn sa, T.Replicate n' t' i)
   S.Pair _ _ -> throwError "Cannot infer pair"
   S.GAno t a -> do
     a' <- check c a T.SUr
@@ -133,7 +137,7 @@ check c t a = do
   unless (a' == b') (throwError $ "When checking the term " ++ show t ++ "\nMismatch between\n" ++ show a' ++ "\n" ++ show b')
   pure t'
 
-env :: Ctxt -> T.Env
+env :: Ctxt -> T.SEnv
 env = map (snd . snd)
 
 lkp :: MonadError String m => S.Nm -> Ctxt -> m (T.Sm, T.Tm)
